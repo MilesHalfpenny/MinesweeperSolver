@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 
 def convertImage(goodMatchRequirement, 
                  goodMatchRequirementSolidColour, 
+                 goodMatchRequirementMineFlag,
                  pathToReferenceImages, 
                  debugging = False):
     """
@@ -59,7 +60,7 @@ def convertImage(goodMatchRequirement,
     """
 
     #HERE - currently pulling the board from where the reference images are, probably shouldn't (so should store it somewhere else)
-    board = ski.io.imread(Path.joinpath(pathToReferenceImages, "Board.png"))
+    board = ski.io.imread(Path.joinpath(pathToReferenceImages, "Board2.png"))
 
     #a seperate tile used as the reference tile for sizing, as it MUST have as close to the exact dimensions for a tile as possible 
     #       (whereas the dimensions for a specific mine number may be cropped for whatever reason)
@@ -76,7 +77,7 @@ def convertImage(goodMatchRequirement,
     tileNameNumberValDict : dict[str, int] = {"FlaggedMine" : -2, "EmptyTile" : -1, "Mine1" : 1, "Mine2" : 2, "Mine3" : 3, "Mine4" : 4, "Mine5" : 5, "Mine6" : 6, "Mine7" : 7}
     for tileName in tileNameNumberValDict.keys():
         for altPath in ("", "Alt"):
-            tileImagePath = Path  .joinpath(pathToReferenceImages, tileName+altPath+".png")
+            tileImagePath = Path.joinpath(pathToReferenceImages, tileName+altPath+".png")
 
             if debugging:
                 print(tileImagePath)
@@ -90,8 +91,10 @@ def convertImage(goodMatchRequirement,
             templateMatchResult = ski.feature.match_template(board, tileImage)
 
             #sets the good match requirement that will be used to the corresponding arguement depending on what tile is being looked for
-            if tileNameNumberValDict[tileName] in (-2, -1, 0):
+            if tileNameNumberValDict[tileName] in (-1, 0): #HERE - potentially flaggedMine is also a single colour
                 goodMatchReqUsing = goodMatchRequirementSolidColour
+            elif tileNameNumberValDict[tileName] == -2:
+                goodMatchReqUsing = goodMatchRequirementMineFlag
             else:
                 goodMatchReqUsing = goodMatchRequirement
 
@@ -103,7 +106,7 @@ def convertImage(goodMatchRequirement,
                     if pixel >= goodMatchReqUsing:
                         goodMatches.add((coloumnNum, rowNum))
 
-                    if debugging and pixel < goodMatchRequirement:
+                    if debugging and pixel < goodMatchReqUsing:
                         #for debugging purposes - to highlight where a good match was found
                         templateMatchResult[rowNum][coloumnNum] = 0
 
@@ -143,13 +146,7 @@ def convertImage(goodMatchRequirement,
 
     return resultingBoardArray
     
-#the path to the folder where we will be pulling all of the reference images of the game board from
-pathToReferenceImages = Path("C:\\BigProj\MinesweeperSolver\ReferencesImages")
 
-convertImage(0.95, 
-                 0.99, 
-                 pathToReferenceImages, 
-                 debugging = False)
 
 
 
